@@ -10,6 +10,7 @@ const {
   updateTodo,
   deleteTodo,
 } = require("../controllers/todo");
+const checkLogin = require("../middlewares/userAuth");
 
 // Todo Create
 router.route("/").post(createTodo);
@@ -18,7 +19,7 @@ router.route("/").post(createTodo);
 router.route("/all").post(multipleTodoPost);
 
 // Todo Get
-router.route("/").get(getTodo);
+router.route("/").get(checkLogin, getTodo);
 
 // Todo Get By Id
 router.route("/:id").get(getToById);

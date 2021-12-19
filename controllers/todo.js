@@ -1,6 +1,8 @@
 const ErrorResponse = require("../utilities/errorResponse");
 const Todo = require("../Schema/tood");
 
+const checkLogin = require("../middlewares/userAuth");
+
 // Todo Create
 exports.createTodo = async (req, res, next) => {
   try {
@@ -28,6 +30,7 @@ exports.multipleTodoPost = async (req, res, next) => {
 exports.getTodo = async (req, res, next) => {
   try {
     const findTodo = await Todo.find();
+
     res.status(200).json({
       success: true,
       todo: findTodo,

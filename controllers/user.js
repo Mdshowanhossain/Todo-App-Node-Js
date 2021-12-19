@@ -1,6 +1,8 @@
 const User = require("../Schema/user");
 const ErrorResponse = require("../utilities/errorResponse");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const checkLogin = require("../middlewares/userAuth");
 // SignUp User
 exports.signup = async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -22,7 +24,7 @@ exports.signup = async (req, res, next) => {
 
 // Login User
 exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     if (!email || !password) {
@@ -39,7 +41,20 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse("Invalid Credentials", 400));
     }
 
-    res.status(200).json({ success: true, message: "Login successful" });
+    const token = await jwt.sign(
+      {
+        name: logInUser.name,
+        userId: logInUser._id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: "Login successful", token: token });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
   }
