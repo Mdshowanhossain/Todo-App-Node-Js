@@ -1,3 +1,4 @@
+const ErrorResponse = require("../utilities/errorResponse");
 const Todo = require("../Schema/tood");
 
 // Todo Create
@@ -6,8 +7,8 @@ exports.createTodo = async (req, res, next) => {
     const createTodo = new Todo(req.body);
     await createTodo.save();
     res.status(201).json({ success: true, todo: createTodo });
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -17,7 +18,9 @@ exports.multipleTodoPost = async (req, res, next) => {
     const multipleTodoPost = await Todo.create(req.body);
     res.status(201).json({ success: true, todo: multipleTodoPost });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    next(err);
+    // return next(new ErrorResponse("This is "))
+    // res.status(500).json({ success: false, error: err.message });
   }
 };
 
@@ -30,10 +33,11 @@ exports.getTodo = async (req, res, next) => {
       todo: findTodo,
     });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    next(err);
+    // res.status(500).json({
+    //   success: false,
+    //   error: err.message,
+    // });
   }
 };
 
@@ -43,10 +47,10 @@ exports.getToById = async (req, res, next) => {
     const findTodoById = await Todo.findById({ _id: req.params.id });
 
     if (!findTodoById) {
-      res.status(404).json({ success: false, error: "No to found" });
-      next("No todo found");
+      return next(new ErrorResponse("No Todo find with this i'd", 404));
+      // res.status(404).json({ success: false, error: "No to found" });
+      // next("No todo found");
     }
-
     res.status(200).json({ success: true, todo: findTodoById });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -58,8 +62,15 @@ exports.updateTodo = async (req, res, next) => {
   try {
     const updateTodoById = await Todo.findByIdAndUpdate(
       { _id: req.params.id },
-      req.body
+      req.body,
+      {
+        new: true,
+      }
     );
+
+    if (!updateTodoById) {
+      return next(new ErrorResponse("No Todo find with this i'd", 404));
+    }
     res.status(200).json({ success: true, todo: updateTodoById });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -70,6 +81,11 @@ exports.updateTodo = async (req, res, next) => {
 exports.deleteTodo = async (req, res, next) => {
   try {
     const deleteTodo = await Todo.findByIdAndDelete({ _id: req.params.id });
+
+    if (!deleteTodo) {
+      return next(new ErrorResponse("No Todo find with this i'd", 404));
+    }
+
     res.status(200).json({ success: true, todo: "Todo Delete Successfully" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
